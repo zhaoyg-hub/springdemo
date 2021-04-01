@@ -24,13 +24,14 @@ public class UserController{
 	private Covszservice covszService;
 	
 	//springboot test
-	 @RequestMapping("/hello")	
-	 @ResponseBody 
-	 public String hello() 
-	 { 
+	 /*
+	@RequestMapping("/hello")
+	 @ResponseBody
+	 public String hello()
+	 {
 		 return"Hello World ggdghtthsgsADGHH!";
 	 }
-	 
+	 */
 	
 	 //主页面，返回显示地图的静态页面
 	@RequestMapping("/covsz")
@@ -39,7 +40,7 @@ public class UserController{
 	}
 	
 	 //读取数据库中的全部数据，往前端传递
-	//asf
+	//asfasadg打发点
 	 @ResponseBody   //这个注解就是把数据以JSON格式传走
 	 @RequestMapping("/getall")
 	 public List<Covsz> getAll()
