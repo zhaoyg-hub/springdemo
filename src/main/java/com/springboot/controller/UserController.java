@@ -39,6 +39,7 @@ public class UserController{
 	}
 	
 	 //读取数据库中的全部数据，往前端传递
+	//asf
 	 @ResponseBody   //这个注解就是把数据以JSON格式传走
 	 @RequestMapping("/getall")
 	 public List<Covsz> getAll()
