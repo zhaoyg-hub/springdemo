@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>新冠肺炎境外输入性风险分析</title>
+    <link rel="icon" href="/Favicon.ico" type="image/x-icon"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=yes" />
+
+    <!-- ECharts -->
+    <script src="https://cdn.staticfile.org/echarts/4.6.0/echarts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-gl@1.1.1/dist/echarts-gl.js"></script>
+
+    <!-- mapbox -->
+    <!-- mapbox -->
+    <script src='https://cdn.staticfile.org/mapbox-gl/1.8.0/mapbox-gl.js'></script>
+    <link href='https://cdn.staticfile.org/mapbox-gl/1.8.0/mapbox-gl.css' rel="stylesheet" />
+
+    <!-- jQuery -->
+    <script src="https://cdn.staticfile.org/jquery/2.2.4/jquery.min.js"></script>
+
+    <!-- bootstrap4 -->
+    <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #main {
+            display: flex;
+            justify-content: space-around;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        /* #container { position:absolute; top:0; bottom:0; width:100%; } */
+        #dist_select {
+            position: absolute;
+            z-index: 20;
+        }
+
+        /* #buttons {
+            width: 100%;
+            position: relative
+            margin: 0 auto;
+        }
+
+        .button {
+            display: inline-block;
+            left: 0;
+            position: relative;
+            cursor: pointer;
+            width: 10%;
+            padding: 8px;
+            border-radius: 3px;
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: center;
+            color: #fff;
+            background: #ee8a65;
+            font-family: sans-serif;
+            font-weight: bold;
+        } */
+
+        .btn-group {
+            display: inline-block;
+            /* display:flex;
+            justify-content:space-around; */
+            margin-right: 10px;
+            margin-top: 20px;
+            left: 10px;
+            font-size: 14px;
+            color: #fff;
+            text-align: center;
+            font-family: sans-serif;
+            font-weight: bold;
+        }
+
+        .container {
+            display: inline-block;
+
+            margin-right: 10px;
+            margin-top: 10px;
+            left: 10px;
+
+        }
+
+        .title {
+            font-size: 22px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main">
+    </div>
+    <div class="container col-sm-2">
+        <form>
+            <div class="form-group">
+                <label for=""></label>
+                <select class="form-control" id="sel1">
+                    <option placeholder="选择城市">选择城市</option>
+                    <option id="guangzhou" value='Gz'>广州(Guangzhou)</option>
+                    <option id="shenzhen" value='Sz'>深圳(Shenzhen)</option>
+                </select>
+                <label for=""></label>
+                <select class="form-control" id="sel2">
+                    <option placeholder="选择国家">选择国家</option>
+                    <option value="Iran">伊朗(Iran)</option>
+                    <option id="GzSpain" value="Spain">西班牙(Spain)</option>
+                    <option id="GzFrance" value="France">法国(France)</option>
+                    <option id="GzGermany" value="Germany">德国(Germany)</option>
+                    <option id="GzItaly" value="Italy">意大利(Italy)</option>
+                    <option id="GzJapan" value="Japan">日本(Japan)</option>
+                    <option id="GzKorea" value="Korea">韩国(South Korea)</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-primary" id="s1">Submit</button>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        // initialize an echarts instance
+        var myChart = echarts.init(document.getElementById('main'));
+
+        mapboxgl.accessToken = 'pk.eyJ1Ijoia2FyaXp6bGUiLCJhIjoiY2s0aHUycHZvMTRxcTNrbzl0bzRtY2ozcSJ9.PIN5y0Yw8RnbpcUty1kBNA';
+
+        //广州数据
+        var guangzhou_csv_data = [];
+        var GzIran_csv_data = [];
+        var GzSpain_csv_data = [];
+        var GzFrance_csv_data = [];
+        var GzGermany_csv_data = [];
+        var GzItaly_csv_data = [];        
+        var GzJapan_csv_data = [];
+        var GzKorea_csv_data = [];
+
+        //深圳数据
+        var shenzhen_csv_data = [];
+        var SzIran_csv_data = [];       
+        var SzSpain_csv_data = [];
+        var SzFrance_csv_data = [];
+        var SzGermany_csv_data = [];
+        var SzItaly_csv_data = [];        
+        var SzJapan_csv_data = [];
+        var SzKorea_csv_data = [];
+        
+        
+        var strgz="/getgz";    //广州      
+        var strgziran="/getGzandIran";   //广州-伊朗
+        var strgzspain="/getGzandSpain";  //广州-西班牙        
+        var strgzfrance="/getGzandFrance"; //广州-法国
+        var strgzgermany="/getGzandGermany";  //广州德国
+        var strgzitaly="/getGzandItaly";   //广州意大利
+        var strgzjapan="/getGzandJapan";   //广州日本
+        var strgzkorea="/getGzandKorea";  //广州-韩国
+        
+        var strsz="/getsz";   //深圳
+        var strsziran="/getSzandIran";   //深圳-伊朗
+        var strszspain="/getSzandSpain";   //深圳-西班牙        
+        var strszfrance="/getSzandFrance";
+        var strszgermany="/getSzandGermany";
+        var strszitaly="/getSzandItaly";
+        var strszjapan="/getSzandJapan";
+        var strszkorea="/getSzandkorea";
+        
+        guangzhou_csv_data=getdata(strgz);       
+        GzIran_csv_data=getdata(strgziran);
+        GzSpain_csv_data=getdata(strgzspain);
+        GzFrance_csv_data=getdata(strgzfrance);
+        GzGermany_csv_data=getdata(strgzgermany);
+        GzItaly_csv_data=getdata(strgzitaly);
+        GzJapan_csv_data=getdata(strgzjapan);
+        GzKorea_csv_data=getdata(strgzkorea);
+        		
+        shenzhen_csv_data=getdata(strsz);
+        SzIran_csv_data=getdata(strsziran);
+        SzSpain_csv_data=getdata(strszspain);   
+        SzFrance_csv_data=getdata(strszfrance);
+        SzGermany_csv_data=getdata(strszgermany);
+        SzItaly_csv_data=getdata(strszitaly);
+        SzJapan_csv_data=getdata(strszjapan);
+        SzKorea_csv_data=getdata(strszkorea);
+        
+        console.log("深圳韩国数据 = " +SzKorea_csv_data);
+        
+      //返回数据函数，根据不同的请求换回不同的数据
+        function getdata(str){
+        	var tem=[];
+            $.ajax({
+              type:"post",            
+              url:str,
+              dataType: "json",
+              data:{},
+              async: false,
+              success:function (data) 
+              {   
+            	  console.log("data = " +data);
+                  for (var i in data) 
+                  {             	
+                  	  x= parseFloat(data[i].m_lng);            	
+                      y= parseFloat(data[i].m_lat); 
+                      z= parseFloat(data[i].m_size);
+                      id=data[i].m_fid;
+                      ct=data[i].m_city;
+                      ad=data[i].m_address;
+                      mt=data[i].m_amount;                  
+                      tem.push([id,x,y,z,ct,ad,mt]);    
+                  }       
+                
+              }             
+          });  
+        	return tem;
+        }
+    
+
+        var convertCSVData = function (data) {
+            var res = [];
+            for (var i = 0; i < data.length; i++) {
+                res.push({
+                    name: [data[i][5], data[i][6]],
+                    value: [data[i][1], data[i][2], data[i][6]]
+                })
+            }
+            return res;
+        };
+
+        var option = {
+            title: [{
+                text: '新冠肺炎境外输入性风险分析',
+                subtext: 'Risk Analysis of Overseas Imported NCov \n 3月3-3月17日',
+
+                left: 'center',
+                top: 20,
+                // backgroundColor: 'rgb(251,59,59)',
+                textStyle: {
+                    color: '#fff',
+                    fontSize: 30,
+                },
+                subtextStyle: {
+                    lineHeight: 25,
+                    color: '#fff',
+                    fontSize: 20,
+                    fontWeight: 'bold',
+                },
+
+            }],
+            tooltip: {
+                trigger: 'item',
+                show: true,
+                silent: false,
+                padding: 10,
+                backgroundColor: '#222',
+                borderColor: '#777',
+                borderWidth: 1,
+                // formatter(params){
+                //     console.log(params);
+                // }
+                formatter: function(param) {
+                            return '地址：' + param.name[0] + '<br>数量：' + param.value[2];
+                        }
+            },
+           
+
+            // mapbox
+            mapbox3D: { // v1.0.0 update "mapbox" to "mapbox3D"!!! ref: https://github.com/ecomfe/echarts-gl/issues/214
+                center: [113.75, 23.05],    // center: Dongguan
+                zoom: 8,                    // starting zoom
+                pitch: 50,
+                bearing: -10,
+                style: 'mapbox://styles/karizzle/ck7wnshhp0f1y1iox26ra142e',
+                boxHeight: 20,
+            },
+           
+
+
+        };
+        myChart.setOption(option);
+
+        //广州数据读取
+
+
+        $("#s1").on('click', function (e) {
+            var t = $("#sel1 option:selected").val();
+            // alert(t);
+            var z = $("#sel2 option:selected").val();
+            var y = t + z;
+            // alert(y);
+            var x;
+            var u;
+            var v;
+            switch (y) {
+                case 'Gz选择国家': x = guangzhou_csv_data;
+                    v = 9;
+                    u = [113.27, 23.13];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 960, color: '#731c1e' },  // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 450, lte: 960, color: '#f52440' },
+                                { gt: 165, lte: 450, color: '#da7110' },
+                                { gt: 7, lte: 165, color: '#ffee33' },
+                                { lte: 7, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                            
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                case 'Sz选择国家': x = shenzhen_csv_data;
+                    v = 9.5;
+                    u = [114.212605, 22.648555];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 300, color: '#731c1e' },  // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 80, lte: 300, color: '#f52440' },
+                                { gt: 30, lte: 80, color: '#da7110' },
+                                { gt: 7, lte: 30, color: '#ffee33' },
+                                { lte: 7, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    // alert(x);
+                    break;
+                case 'GzSpain': x = GzSpain_csv_data;
+                    v = 9;
+                    u = [113.27, 23.13];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 12, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 6, lte: 12, color: '#f52440' },
+                                { gt: 2, lte: 6, color: '#da7110' },
+                                { gt: 1, lte: 2, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                case 'GzIran': x = GzIran_csv_data;
+                    v = 9;
+                    u = [113.27, 23.13];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 20, color: '#731c1e' },  // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 9, lte: 20, color: '#f52440' },
+                                { gt: 4, lte: 9, color: '#da7110' },
+                                { gt: 1, lte: 4, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                // alert(x);
+                case 'GzFrance': x = GzFrance_csv_data;
+                    v = 9;
+                    u = [113.27, 23.13];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 88, color: '#731c1e' },  // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 50, lte: 88, color: '#f52440' },
+                                { gt: 18, lte: 50, color: '#da7110' },
+                                { gt: 1, lte: 18, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                case 'GzGermany': x = GzGermany_csv_data;
+                    v = 9;
+                    u = [113.27, 23.13];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 88, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 50, lte: 88, color: '#f52440' },
+                                { gt: 18, lte: 50, color: '#da7110' },
+                                { gt: 1, lte: 18, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                case 'GzItaly': x = GzItaly_csv_data;
+                    v = 9;
+                    u = [113.27, 23.13];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 88, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 50, lte: 88, color: '#f52440' },
+                                { gt: 18, lte: 50, color: '#da7110' },
+                                { gt: 1, lte: 18, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                case 'GzJapan': x = GzJapan_csv_data;
+                    v = 9;
+                    u = [113.27, 23.13];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 251, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 97, lte: 251, color: '#f52440' },
+                                { gt: 36, lte: 97, color: '#da7110' },
+                                { gt: 1, lte: 36, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                case 'GzKorea': x = GzKorea_csv_data;
+                    v = 9;
+                    u = [113.27, 23.13];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 410, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 189, lte: 410, color: '#f52440' },
+                                { gt: 72, lte: 189, color: '#da7110' },
+                                { gt: 1, lte: 72, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+
+
+                // 深圳数据
+                case 'SzIran': x = SzIran_csv_data;
+                    v = 9.5;
+                    u = [114.212605, 22.648555];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 12, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 6, lte: 12, color: '#f52440' },
+                                { gt: 2, lte: 6, color: '#da7110' },
+                                { gt: 1, lte: 2, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                case 'SzSpain': x = SzSpain_csv_data;
+                    v = 9.5;
+                    u = [114.212605, 22.648555];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 20, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 9, lte: 20, color: '#f52440' },
+                                { gt: 4, lte: 9, color: '#da7110' },
+                                { gt: 1, lte: 4, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                case 'SzFrance': x = SzFrance_csv_data;
+                    v = 9.5;
+                    u = [114.212605, 22.648555];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 88, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 50, lte: 88, color: '#f52440' },
+                                { gt: 18, lte: 50, color: '#da7110' },
+                                { gt: 1, lte: 18, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                case 'SzGermany': x = SzGermany_csv_data;
+                    v = 9.5;
+                    u = [114.212605, 22.648555];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 88, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 50, lte: 88, color: '#f52440' },
+                                { gt: 18, lte: 50, color: '#da7110' },
+                                { gt: 1, lte: 18, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                case 'SzItaly': x = SzItaly_csv_data;
+                    v = 9.5;
+                    u = [114.212605, 22.648555];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 81, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 38, lte: 81, color: '#f52440' },
+                                { gt: 13, lte: 38, color: '#da7110' },
+                                { gt: 1, lte: 13, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+                case 'SzJapan': x = SzJapan_csv_data;
+                    v = 9.5;
+                    u = [114.212605, 22.648555];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 216, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 58, lte: 216, color: '#f52440' },
+                                { gt: 23, lte: 58, color: '#da7110' },
+                                { gt: 1, lte: 23, color: ' #ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    }; 
+                    myChart.setOption(option);
+                    break;
+                case 'SzKorea': x = SzKorea_csv_data;
+                    v = 9.5;
+                    u = [114.212605, 22.648555];
+                    var option = {
+                        visualMap: {
+                            type: 'piecewise',
+                            pieces: [
+                                { gt: 398, color: '#731c1e' }, // #731c1e  #f52440   #da7110   #ffee33  #30d61f
+                                { gt: 129, lte: 398, color: '#f52440' },  
+                                { gt: 45, lte: 129, color: '#da7110' },
+                                { gt: 1, lte: 45, color: '#ffee33' },
+                                { lte: 1, color: '#30d61f' },
+                            ],
+                            left: 20,
+                            bottom: 40,
+                            textStyle: {
+                                color: '#fff'
+                            },
+                        },
+                    };
+                    myChart.setOption(option);
+                    break;
+            };
+
+
+
+            myChart.setOption({
+                mapbox3D: {
+                    center: u,
+                    // center: [113.27, 23.13],    // center: Guangzhou
+                    zoom: v,
+                },
+                series: [{
+                    name: 'guangzhou',
+                    type: 'bar3D',
+                    coordinateSystem: 'mapbox3D',
+                    // silent: true,
+                    // data:
+                    barSize: 0.15,
+                    data: convertCSVData(x),
+                    itemStyle: {
+                        opacity: 0.6
+                    },
+                     label: {
+                         formatter:'',
+                  
+                     }
+                }]
+            });
+        });
+        
+    </script>
+</body>
+
+</html>

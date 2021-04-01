@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>深圳冠状病毒分部图</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.js'></script>
+    <script src='js/jquery-3.3.1.min.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.1.1/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+
+<div id='map'></div> 
+ 
+
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoiamVycnl4aW5neGluZyIsImEiOiJjazU3aXBvamcwMHBjM2ZwbnZxaTJvNDFhIn0.8frIUfuTQeXwiL5vlfqbJg';
+
+var sz_center_x = 114.052889;
+var sz_center_y = 22.545517;
+var radius = 0.002;
+var map = new mapboxgl.Map({
+    container: 'map',
+	style: 'mapbox://styles/mapbox/dark-v9',
+	center: [sz_center_x, sz_center_y],
+	zoom: 10
+});
+
+
+var size = 100;
+
+var pulsingDot = {
+    width: size,
+    height: size,
+    data: new Uint8Array(size * size * 4),
+
+    onAdd: function() {
+        var canvas = document.createElement('canvas');
+        canvas.width = this.width;
+        canvas.height = this.height;
+        this.context = canvas.getContext('2d');
+    },
+
+    render: function() {
+        var duration = 1000;
+        var t = (performance.now() % duration) / duration;
+
+        var radius = size / 2 * 0.3;
+        var outerRadius = size / 2 * 0.7 * t + radius;
+        var context = this.context;
+
+        // draw outer circle
+        context.clearRect(0, 0, this.width, this.height);
+        context.beginPath();
+        context.arc(this.width / 2, this.height / 2, outerRadius, 0, Math.PI * 2);
+        context.fillStyle = 'rgba(255, 200, 200,' + (1 - t) + ')';
+        context.fill();
+
+        // draw inner circle
+        context.beginPath();
+        context.arc(this.width / 2, this.height / 2, radius, 0, Math.PI * 2);
+        context.fillStyle = 'rgba(255, 100, 100, 1)';
+        context.strokeStyle = 'white';
+        context.lineWidth = 2 + 4 * (1 - t);
+        context.fill();
+        context.stroke();
+
+        // update this image's data with data from the canvas
+        this.data = context.getImageData(0, 0, this.width, this.height).data;
+
+        // keep the map repainting
+        map.triggerRepaint();
+
+        // return `true` to let the map know that the image was updated
+        return true;
+    }
+};
+
+
+const pointList=[];
+//var data1=[];
+//var str=[];
+
+
+function getdatafromdb()
+{
+    $.ajax({
+        type:"post",
+        url:"/getall",
+        dataType: "json",
+        data:{},
+        async: false,
+        success:function (data) 
+        {           	 
+        	 //str = JSON.stringify(data);   //将json对象数据转换成字符串数据，因为Js不能直接显示json对象      
+             //alert(str); 
+             //alert(data[30].covlon);      //测试数据获取是否成功
+             
+             //var data1=JSON.parse(str);     //将字符串封装成json对象
+             //alert([data1[30].covlon,data1[30].covlat]);            
+             //alert(data1[30].covlon);   
+             
+             //将从后台获取的json对象的地理坐标封装成二维数组，供mapbox显示
+            for (var i in data) 
+            {            	
+            	//id=data[i].covid;    
+            	//persons[id]=data[i];       //数据拷贝          	
+            	
+            	x= parseFloat(data[i].covlon);            	
+                y= parseFloat(data[i].covlat);           
+                pointList.push([x,y]);    
+            }              
+            console.log(data);
+     		console.log(pointList);
+        }             
+    });     
+      
+}
+
+
+
+//var pointList=[[114.143604226,22.5457291705],[114.086195504,22.5329760379],[113.852642361,22.6008122355],[114.382823451,22.7309137328],[114.51066957,22.589180522]];
+
+map.on('load', function () {  	
+	  
+	getdatafromdb();
+	   
+	   map.addImage('pulsing-dot', pulsingDot, { pixelRatio: 2 });
+	    map.addLayer({
+	        "id": "points",
+	        "type": "symbol",
+	        "source": {
+	        	"type": "geojson",
+	        	"data": {
+	        	   "type": "FeatureCollection",
+	        	   "features": [{
+	        	      "type": "Feature",
+	        	      "geometry": {
+	        	                     "type": "MultiPoint",
+	        	                      "coordinates": pointList
+	        	                  }
+	        	               }]
+	        	         }
+	        	       },
+	        "layout": {
+	            "icon-image": "pulsing-dot"
+	        }
+	    });
+   
+		 
+    
+});
+
+</script>
+
+
+
+</body>
+</html>

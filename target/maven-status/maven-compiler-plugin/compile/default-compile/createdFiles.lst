@@ -1,0 +1,6 @@
+com\springboot\dao\CovszDao.class
+com\springboot\controller\errorController.class
+com\springboot\controller\UserController.class
+com\springboot\service\Covszservice.class
+com\springboot\domain\Covsz.class
+com\springboot\App.class

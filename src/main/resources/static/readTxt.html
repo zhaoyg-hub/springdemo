@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>添加数据库</title>
+</head>
+
+<body>
+    <input type='file' accept='text/plain' onchange='openFile(event)'><br>
+    <div id="output"></div>
+</body>
+<script src='js/jquery-3.3.1.min.js'></script>
+<script type="text/javascript">
+
+    var openFile = function (event) {
+        //input元素，事件触发的目标设定为input
+        var input = event.target;
+        //创建文件读取对象
+        var reader = new FileReader();
+
+        //读取数据，文件读取完成时触发
+        reader.onload = function () {
+
+            if (reader.result) {
+                //显示文件内容
+                $("#output").html(reader.result);
+            }
+            let jsonstr = "";
+            jsonstr = reader.result;
+            //var data1 = JSON.parse(jsonstr);
+            console.log(jsonstr);
+
+            //上传json格式的字符串
+            $.ajax({
+                type: "POST",
+                url: "/insertbatch",
+                dataType: "text",
+                contentType: "application/json; charset=utf-8",
+                data: jsonstr,  
+                //data: JSON.stringify({'id':"2"}),  //测试上传是否成功
+                error: function() { alert('失败,请重新上传 ！'); },
+                success: function (data) { alert('上传成功！'); }               
+            });
+        };
+        //读取文本文件
+        reader.readAsText(input.files[0]);
+
+    };
+
+</script>
+
+</html>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.springboot.dao.CovszDao"> 
+    <resultMap id="covszMap" type="com.springboot.domain.Covsz">
+        <result property="covid" column="id"/>
+        <result property="covfid" column="fid"/>
+        <result property="covdayi" column="day_i"/>
+        <result property="covdaye" column="day_e"/>         
+        <result property="covdayr" column="day_r"/> 
+        <result property="covlon" column="lon"/>
+        <result property="covlat" column="lat"/> 
+        <result property="covtype" column="type"/>
+        <result property="covqua" column="qua"/> 
+    </resultMap>
+    
+    
+    <!-- id：可以理解为对应Java文件中的方法名
+    parameterType：可以理解为该方法的参数类型，无参数可以不写 -->  
+    
+    <insert id="insertcov" parameterType="com.springboot.domain.Covsz">
+      insert into infect (             
+             id,
+             fid,
+             day_i,
+             day_e,
+             day_r,
+             lon,
+             lat,
+             type,
+             qua
+              )
+      VALUES (
+            #{covid},
+            #{covfid},
+            #{covdayi},
+            #{covdaye}, 
+            #{covdayr},  
+            #{covlon},  
+            #{covlat},  
+            #{covtype},  
+            #{covqua}           
+          )
+    </insert>
+    
+    <insert id="insertbatch" parameterType="java.util.List" useGeneratedKeys="false">
+      insert into infect (             
+             id,
+             fid,
+             day_i,
+             day_e,
+             day_r,
+             lon,
+             lat,
+             type,
+             qua
+              )
+      VALUES 
+      <foreach collection="list" item="item" index="index" separator=",">
+      
+          (
+            #{item.covid},
+            #{item.covfid},
+            #{item.covdayi},
+            #{item.covdaye}, 
+            #{item.covdayr},  
+            #{item.covlon},  
+            #{item.covlat},  
+            #{item.covtype},  
+            #{item.covqua}           
+          )
+      </foreach>          
+    </insert>
+    
+    <update id="updatecov" parameterType="com.springboot.domain.Covsz">
+        update infect
+        set id=#{covid},
+            fid=#{covfid},
+            day_i= #{covdayi},
+            day_e=#{covdaye},
+            day_r=#{covdayr},
+            lon=#{covlon},
+            lat=#{covlat},
+            type=#{covtype},
+            qua=#{covqua}
+        where id=#{covid}
+    </update>
+ 
+    <delete id="deletecov" parameterType="java.lang.Integer">
+        DELETE FROM infect
+        WHERE id = #{covid}
+        <!--IN
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>-->
+    </delete>
+ 
+    <select id="selectfmdaytm"  resultMap="covszMap">
+        select distinct *
+        from infect
+        where day_e = #{day_e}
+    </select>
+    <select id="selectcovfmid"  resultMap="covszMap">
+        select *
+        from infect
+        where id = #{id}
+    </select>
+ 
+    <select id="selectAllcov" resultMap="covszMap">
+        select  distinct *
+        from infect
+    </select>       
+    <select id="selectrepeat" resultMap="covszMap">        
+        select  *
+        from infect        
+    </select>  
+    <select id="delrepeate" resultMap="covszMap">        
+        delete from infect where infect.rowid not in (select MAX(infect.rowid) from infect group by id) 
+    </select>  
+  
+</mapper>
