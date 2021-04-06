@@ -34,7 +34,7 @@ public class UserController{
 
 	
 	 //主页面，返回显示地图的静态页面
-	@RequestMapping("/covsz")
+	@RequestMapping("/")
 	public String covszer() {
 		return "MapboxDemo.html";
 	}
