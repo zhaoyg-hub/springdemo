@@ -4,7 +4,6 @@ spring:
   datasource:
     url: jdbc:sqlite::resource:db/covszp.db
     #url: jdbc:sqlite:C:/sqlite/covszp.db
-    #url: jdbc:sqlite:data/covszp.db
     driver-class-name: org.sqlite.JDBC
     username:
     password:
