@@ -24,14 +24,14 @@ public class UserController{
 	private Covszservice covszService;
 	
 	//springboot test
-	 /*
+
 	@RequestMapping("/hello")
 	 @ResponseBody
 	 public String hello()
 	 {
 		 return"Hello World ggdghtthsgsADGHH!";
 	 }
-	 */
+
 	
 	 //主页面，返回显示地图的静态页面
 	@RequestMapping("/covsz")
